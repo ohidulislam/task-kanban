@@ -1,67 +1,96 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import KanbanBoards from "./components/KanbanBoards";
 import Layout from "./components/Layouts";
 import Taskform from "./components/Taskform";
 
 import "./App.css";
 
+const initBoards = [
+	{
+		id: Date.now() + Math.random() * 10,
+		title: "TO DO",
+		cards: [],
+	},
+	{
+		id: Date.now() + Math.random() * 10,
+		title: "In Progress",
+		cards: [],
+	},
+	{
+		id: Date.now() + Math.random() * 10,
+		title: "Done",
+		cards: [],
+	},
+];
+
 function App() {
-	const [boards, setBoards] = useState([
-		{
-			id: Date.now() + Math.random() * 10,
-			title: "TO DO",
-			cards: [
-				{
-					id: Date.now() + Math.random(),
-					content: "Task 01",
-				},
-				{
-					id: Date.now() + Math.random(),
-					content: "Task 02",
-				},
-			],
-		},
-		{
-			id: Date.now() + Math.random() * 10,
-			title: "In Progress",
-			cards: [
-				{
-					id: Date.now() + Math.random(),
-					content: "INP Task 04",
-				},
-				{
-					id: Date.now() + Math.random(),
-					content: "INP Task 05",
-				},
-				{
-					id: Date.now() + Math.random(),
-					content: "INP Task 06",
-				},
-			],
-		},
-		{
-			id: Date.now() + Math.random() * 10,
-			title: "Done",
-			cards: [
-				{
-					id: Date.now() + Math.random(),
-					content: "Done Task 07",
-				},
-			],
-		},
-	]);
+	const [boards, setBoards] = useState(JSON.parse(localStorage.getItem("task-data")) || initBoards);
+	// const [boards, setBoards] = useState([
+	// 	{
+	// 		id: Date.now() + Math.random() * 10,
+	// 		title: "TO DO",
+	// 		cards: [
+	// 			{
+	// 				id: Date.now() + Math.random(),
+	// 				content: "Task 01",
+	// 			},
+	// 			{
+	// 				id: Date.now() + Math.random(),
+	// 				content: "Task 02",
+	// 			},
+	// 		],
+	// 	},
+	// 	{
+	// 		id: Date.now() + Math.random() * 10,
+	// 		title: "In Progress",
+	// 		cards: [
+	// 			{
+	// 				id: Date.now() + Math.random(),
+	// 				content: "INP Task 04",
+	// 			},
+	// 			{
+	// 				id: Date.now() + Math.random(),
+	// 				content: "INP Task 05",
+	// 			},
+	// 			{
+	// 				id: Date.now() + Math.random(),
+	// 				content: "INP Task 06",
+	// 			},
+	// 		],
+	// 	},
+	// 	{
+	// 		id: Date.now() + Math.random() * 10,
+	// 		title: "Done",
+	// 		cards: [
+	// 			{
+	// 				id: Date.now() + Math.random(),
+	// 				content: "Done Task 07",
+	// 			},
+	// 		],
+	// 	},
+	// ]);
 	const [target, setTarget] = useState({
 		cardId: "",
 		boardId: "",
 	});
 
-	const handleAddTask = (task) => {
-		console.log(task);
-		const boards_deepcopy = JSON.parse(JSON.stringify(boards));
-		console.log(boards_deepcopy[0]);
-		// boards_deepcopy[0].cards.append(task);
+	useEffect(() => {
+		const storedBoards = JSON.parse(localStorage.getItem("task-data"));
+		setBoards(storedBoards);
+		console.log("storedBoards", storedBoards);
+	}, []);
 
-		// setBoards(boards_deepcopy);
+	useEffect(() => {
+		console.log("updated Boards", boards);
+		localStorage.setItem("task-data", JSON.stringify(boards));
+	}, [boards]);
+
+	const handleAddTask = (task) => {
+		const boards_deepcopy = JSON.parse(JSON.stringify(boards));
+
+		// New task will always add to TO-DO board
+		boards_deepcopy[0].cards.push(task);
+		setBoards(boards_deepcopy);
 	};
 
 	const handleDragEnter = (cardId, boardId) => {
@@ -97,7 +126,11 @@ function App() {
 		const tempCard = tempBoards[src_boardIndx].cards?.[src_cardIndx];
 
 		tempBoards[src_boardIndx].cards.splice(src_cardIndx, 1);
-		tempBoards[tar_boardIndx].cards.splice(tar_cardIndx, 0, tempCard);
+		if (tar_cardIndx < 0) {
+			tempBoards[tar_boardIndx].cards.push(tempCard);
+		} else {
+			tempBoards[tar_boardIndx].cards.splice(tar_cardIndx, 0, tempCard);
+		}
 
 		setBoards(tempBoards);
 	};

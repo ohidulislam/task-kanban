@@ -5,11 +5,13 @@ const Taskform = (props) => {
 
 	const handleFormSubmit = (e) => {
 		e.preventDefault();
-		props.onAddTask({
-			id: Date.now() + Math.random(),
-			content: taskData,
-		});
-		setTaskData("");
+		if (taskData) {
+			props.onAddTask({
+				id: Date.now() + Math.random(),
+				content: taskData,
+			});
+			setTaskData("");
+		}
 	};
 
 	return (
